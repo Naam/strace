@@ -171,6 +171,7 @@ check_PROGRAMS = \
 	ipc_msgbuf \
 	ipc_sem \
 	ipc_shm \
+	is_x86 \
 	kill \
 	ksysent \
 	lchown \
@@ -365,6 +366,10 @@ check_PROGRAMS = \
 	xetpriority \
 	xettimeofday \
 	# end of check_PROGRAMS
+
+if ENABLE_FAULT_INJECTION
+check_PROGRAMS += fault
+endif
 
 attach_f_p_LDADD = -lrt -lpthread $(LDADD)
 clock_xettime_LDADD = -lrt $(LDADD)
@@ -687,6 +692,10 @@ DECODER_TESTS = \
 	xettimeofday.test \
 	# end of DECODER_TESTS
 
+if ENABLE_FAULT_INJECTION
+DECODER_TESTS += fault.test
+endif
+
 MISC_TESTS = \
 	attach-f-p.test \
 	attach-p-cmd.test \
@@ -718,6 +727,10 @@ MISC_TESTS = \
 	strace-ttt.test \
 	vfork-f.test \
 	# end of MISC_TESTS
+
+if ENABLE_FAULT_INJECTION
+MISC_TESTS += fault_parsing.test
+endif
 
 TESTS = $(DECODER_TESTS) $(MISC_TESTS) $(LIBUNWIND_TESTS)
 

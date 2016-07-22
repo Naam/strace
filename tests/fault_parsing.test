@@ -1,0 +1,65 @@
+#!/bin/sh
+# This file is part of fault injection tests.
+#
+# Copyright (c) 2016 Nahim El Atmani <nahim+dev@naam.me>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote products
+#    derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Ensure that strace -e faultwith=<syscall>:<occurrence>:<error>,... works.
+
+. "${srcdir=.}/init.sh"
+
+INV_SC_NAME="invalid_syscall_name"
+INV_ER_NAME="invalid_error_name"
+INV_OCC_NBR1="-1"
+INV_OCC_NBR2="105%"
+ERR_MSG='invalid fault argument'
+$(./is_x86)
+X86=$?
+
+if [ ! $X86 ] # Parser check
+then
+    skip_ "fault parsing not available for non x86 architecture"
+else
+    if [ $X86 == 1 ] # 32 bit
+    then
+	run_strace -a0 -e trace=kill -e fault=37:2:22 -e signal=none ./fault at > "$EXP"
+	match_diff "$EXP" "$LOG"
+    elif [ $X86 == 2 ] # 64 bit
+    then
+	run_strace -a0 -e trace=kill -e fault=62:2:22 -e signal=none ./fault at > "$EXP"
+	match_diff "$EXP" "$LOG"
+    fi
+    rm $EXP $LOG
+    $STRACE -a0 -e trace=kill -e fault="$INV_SC_NAME":2:EINVAL ./fault at 2> "$LOG"
+    grep -v "$ERR_MSG" < "$LOG" && dump_log_and_fail_with 'strace-fault failed'
+    $STRACE -a0 -e trace=kill -e fault=kill:2:"$INV_ER_NAME" ./fault at 2> "$LOG"
+    grep -v "$ERR_MSG" < "$LOG" && dump_log_and_fail_with 'strace-fault failed'
+    $STRACE -a0 -e trace=kill -e fault=kill:"$INV_OCC_NBR1":EAGAIN ./fault at 2> "$LOG"
+    grep -v "$ERR_MSG" < "$LOG" && dump_log_and_fail_with 'strace-fault failed'
+    $STRACE -a0 -e trace=kill -e fault=kill:"$INV_OCC_NBR2":EAGAIN ./fault at 2> "$LOG"
+    grep -v "$ERR_MSG" < "$LOG" && dump_log_and_fail_with 'strace-fault failed'
+fi
+
+exit 0
