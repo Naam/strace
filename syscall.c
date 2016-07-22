@@ -266,6 +266,12 @@ enum {
 	MIN_QUALS = MAX_NSYSCALLS > 255 ? MAX_NSYSCALLS : 255
 };
 
+unsigned num_faults;
+struct fault_opts *faults_vec[SUPPORTED_PERSONALITIES];
+#define syscall_failed(tcp)					\
+	(((tcp)->qual_flg & QUAL_FAULT) &&			\
+	 (tcp->faults_vec[current_personality][(tcp)->scno].flag & FAULT_ENTER))
+
 #if SUPPORTED_PERSONALITIES > 1
 unsigned current_personality;
 
@@ -359,6 +365,7 @@ update_personality(struct tcb *tcp, unsigned int personality)
 }
 #endif
 
+static int qual_fault();
 static int qual_syscall(), qual_signal(), qual_desc();
 
 static const struct qual_options {
@@ -384,26 +391,35 @@ static const struct qual_options {
 	{ QUAL_WRITE,	"write",	qual_desc,	"descriptor"	},
 	{ QUAL_WRITE,	"writes",	qual_desc,	"descriptor"	},
 	{ QUAL_WRITE,	"w",		qual_desc,	"descriptor"	},
+	{ QUAL_FAULT,	"fault",	qual_fault,	"fault argument"},
+	{ QUAL_FAULT,	"f",		qual_fault,	"fault argument"},
 	{ 0,		NULL,		NULL,		NULL		},
 };
 
-static inline void
-reallocate_vec(void **vec, size_t size, size_t elt, int n)
+static void
+reallocate_vec(void **vec, size_t old_nmemb, size_t size, int new_nmemb)
 {
 	unsigned p;
-	char *ptr;
 
 	for (p = 0; p < SUPPORTED_PERSONALITIES; p++) {
-		ptr = vec[p] = xreallocarray(vec[p], n, elt);
-		memset(ptr + elt * size, 0, (n - size) * elt);
+		vec[p] = xreallocarray(vec[p], new_nmemb, size);
+		memset(vec[p] + size * old_nmemb, 0, (new_nmemb - old_nmemb) * size);
 	}
 }
 
-static inline void
+static void
 reallocate_qual(const unsigned int n)
 {
 	reallocate_vec((void **)qual_vec, num_quals, sizeof(qualbits_t), n);
 	num_quals = n;
+}
+
+static inline void
+reallocate_fault(const unsigned int n)
+{
+	reallocate_vec((void **)faults_vec, num_faults,
+		       sizeof(struct fault_opts), n);
+	num_faults = n;
 }
 
 static int
@@ -439,8 +455,10 @@ qualify_one(const unsigned int n, unsigned int bitflag, const int not, const int
 {
 	int p;
 
-	if (num_quals <= n)
+	if (num_quals <= n) {
 		reallocate_qual(n + 1);
+		reallocate_fault(n + 1);
+	}
 
 	for (p = 0; p < SUPPORTED_PERSONALITIES; p++) {
 		if (pers == p || pers < 0) {
@@ -479,6 +497,63 @@ qual_syscall(const char *s, const unsigned int bitflag, const int not)
 	}
 
 	return rc;
+}
+
+static int
+qual_fault(const char *s, const unsigned int bitflag, const int not)
+{
+	int i, p;
+	struct fault_opts opts;
+	char *ms, *ss, *end, *saveptr;
+
+	ms = ss = xstrdup(s);
+	ss = strtok_r(ss, ":", &saveptr);
+	if (!ss)
+		goto bad_format;
+
+	ss = strtok_r(NULL, ":", &saveptr);
+	if (!ss)
+		goto bad_format;
+
+	opts.occ = strtol(ss, &end, 10);
+	if (end == ss || (*end != '\0' && *end != '%' && *end != '.')
+	    || errno == ERANGE || errno == EINVAL || opts.occ < 1
+	    || (*end == '%' && opts.occ > 100))
+		goto bad_format;
+	switch (*end) {
+		case '%': opts.flag |= FAULT_FUZZY; break;
+		case '.': opts.flag |= FAULT_EVERY; break;
+		default: opts.flag |= FAULT_AT;
+	}
+
+	ss = strtok_r(NULL, ":", &saveptr);
+	if (!ss)
+		goto bad_format;
+
+	if (-1 == (opts.err = string_to_int(ss))) {
+		if ((opts.err = find_errno_by_name(ss)) < 0)
+			goto bad_format;
+	}
+
+	for (p = 0; p < SUPPORTED_PERSONALITIES; p++) {
+		if (*ms >= '0' && *ms <= '9')
+			i = string_to_uint(ms);
+		else
+			i = find_scno_by_name(ms, p);
+
+		if (i < 0)
+			goto bad_format;
+
+		qualify_one(i, bitflag, not, -1);
+		memcpy(&faults_vec[p][i], &opts, sizeof(struct fault_opts));
+	}
+
+	free(ms);
+	return 0;
+
+bad_format:
+	free(ms);
+	return -1;
 }
 
 static int
@@ -546,8 +621,10 @@ qualify(const char *s)
 	int not;
 	unsigned int i;
 
-	if (num_quals == 0)
+	if (num_quals == 0) {
 		reallocate_qual(MIN_QUALS);
+		reallocate_fault(MIN_QUALS);
+	}
 
 	opt = &qual_options[0];
 	for (i = 0; (p = qual_options[i].option_name); i++) {
@@ -804,10 +881,57 @@ clear_regs(void)
 static int get_syscall_args(struct tcb *);
 static int get_syscall_result(struct tcb *);
 static int arch_get_scno(struct tcb *tcp);
+static long arch_set_scno(struct tcb *, int);
 static void get_error(struct tcb *, const bool);
+static long set_error(struct tcb *tcp);
 #if defined X86_64 || defined POWERPC
 static int getregs_old(pid_t);
 #endif
+
+static long
+fault_syscall_enter(struct tcb *tcp)
+{
+	int p;
+
+	struct fault_opts *opts;
+
+	if (!*tcp->faults_vec) {
+		for (p = 0; p < SUPPORTED_PERSONALITIES; p++) {
+			tcp->faults_vec[p] = xreallocarray(NULL, num_faults,
+							   sizeof(struct fault_opts));
+			memcpy(tcp->faults_vec[p], faults_vec[p],
+			       num_faults * sizeof(struct fault_opts));
+		}
+	}
+
+	opts = &tcp->faults_vec[current_personality][tcp->scno];
+	if (opts->flag & FAULT_DONE)
+		        return 0;
+	opts->cnt++;
+	if ((opts->flag & FAULT_EVERY) && (opts->cnt % opts->occ))
+		return 0;
+	if ((opts->flag & FAULT_AT) && (opts->cnt != opts->occ))
+			return 0;
+	if (opts->flag & FAULT_FUZZY) /* TODO: Support the fuzzy way */
+		return 0;
+	opts->flag |= FAULT_ENTER;
+
+	return arch_set_scno(tcp, FAULT_DISCARD_SCNO);
+}
+
+static long
+fault_syscall_exit(struct tcb *tcp)
+{
+	struct fault_opts *opts = &tcp->faults_vec[current_personality][tcp->scno];
+
+	if (!(opts->flag & FAULT_ENTER))
+		return 0;
+	else if (opts->flag & FAULT_AT)
+		opts->flag |= FAULT_DONE;
+
+	tcp->u_error = opts->err;
+	return set_error(tcp);
+}
 
 static int
 trace_syscall_entering(struct tcb *tcp)
@@ -866,6 +990,10 @@ trace_syscall_entering(struct tcb *tcp)
 		return 0;
 	}
 
+	if (tcp->qual_flg & QUAL_FAULT)
+		if (fault_syscall_enter(tcp))
+			res = -1;
+
 	tcp->flags &= ~TCB_FILTERED;
 
 	if (cflag == CFLAG_ONLY_STATS || hide_log_until_execve) {
@@ -920,8 +1048,14 @@ trace_syscall_exiting(struct tcb *tcp)
 	update_personality(tcp, tcp->currpers);
 #endif
 	res = (get_regs_error ? -1 : get_syscall_result(tcp));
+
 	if (filtered(tcp) || hide_log_until_execve)
 		goto ret;
+
+	if (tcp->qual_flg & QUAL_FAULT
+	    && (tcp->faults_vec[current_personality][tcp->scno].flag & FAULT_ENTER))
+		if (fault_syscall_exit(tcp))
+			res = -1;
 
 	if (cflag) {
 		count_syscall(tcp, &tv);
@@ -983,13 +1117,18 @@ trace_syscall_exiting(struct tcb *tcp)
 	tprints(") ");
 	tabto();
 	u_error = tcp->u_error;
+
 	if (tcp->qual_flg & QUAL_RAW) {
 		if (u_error)
 			tprintf("= -1 (errno %ld)", u_error);
 		else
 			tprintf("= %#lx", tcp->u_rval);
+		if (syscall_failed(tcp)) {
+			tprints("(DISCARDED)");
+			tcp->faults_vec[current_personality][tcp->scno].flag &= ~FAULT_ENTER;
+		}
 	}
-	else if (!(sys_res & RVAL_NONE) && u_error) {
+	else if ((!(sys_res & RVAL_NONE) && u_error) || syscall_failed(tcp)) {
 		switch (u_error) {
 		/* Blocked signals do not interrupt any syscalls.
 		 * In this case syscalls don't return ERESTARTfoo codes.
@@ -1052,6 +1191,10 @@ trace_syscall_exiting(struct tcb *tcp)
 			else
 				tprintf("= -1 ERRNO_%lu (%s)", u_error,
 					strerror(u_error));
+			if (syscall_failed(tcp)) {
+				tcp->faults_vec[current_personality][tcp->scno].flag &= ~FAULT_ENTER;
+				tprintf("(DISCARDED)");
+			}
 			break;
 		}
 		if ((sys_res & RVAL_STR) && tcp->auxstr)
@@ -1461,11 +1604,13 @@ get_syscall_result(struct tcb *tcp)
 }
 
 #include "get_scno.c"
+#include "set_scno.c"
 #include "get_syscall_args.c"
 #ifdef USE_GET_SYSCALL_RESULT_REGS
 # include "get_syscall_result.c"
 #endif
 #include "get_error.c"
+#include "set_error.c"
 #if defined X86_64 || defined POWERPC
 # include "getregs_old.c"
 #endif

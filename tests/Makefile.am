@@ -103,6 +103,7 @@ check_PROGRAMS = \
 	execveat-v \
 	faccessat \
 	fanotify_mark \
+	fault \
 	fchdir \
 	fchmod \
 	fchmodat \
@@ -436,6 +437,7 @@ DECODER_TESTS = \
 	execveat.test \
 	faccessat.test \
 	fanotify_mark.test \
+	fault.test \
 	fchdir.test \
 	fchmod.test \
 	fchmodat.test \
@@ -694,6 +696,7 @@ MISC_TESTS = \
 	detach-running.test \
 	detach-sleeping.test \
 	detach-stopped.test \
+	fault_parsing.test \
 	filter-unavailable.test \
 	fork-f.test \
 	ksysent.test \

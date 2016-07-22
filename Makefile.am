@@ -390,6 +390,8 @@ EXTRA_DIST =				\
 	linux/i386/get_syscall_args.c	\
 	linux/i386/ioctls_arch0.h	\
 	linux/i386/ioctls_inc0.h	\
+	linux/i386/set_error.c		\
+	linux/i386/set_scno.c		\
 	linux/i386/syscallent.h		\
 	linux/i386/userent.h		\
 	linux/i386/userent0.h		\
@@ -631,6 +633,8 @@ EXTRA_DIST =				\
 	linux/x86_64/ioctls_inc0.h	\
 	linux/x86_64/ioctls_inc1.h	\
 	linux/x86_64/ioctls_inc2.h	\
+	linux/x86_64/set_error.c	\
+	linux/x86_64/set_scno.c		\
 	linux/x86_64/signalent1.h	\
 	linux/x86_64/signalent2.h	\
 	linux/x86_64/stat32.h		\

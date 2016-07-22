@@ -246,6 +246,7 @@ struct tcb {
 	struct timeval stime;	/* System time usage as of last process wait */
 	struct timeval dtime;	/* Delta for system time usage */
 	struct timeval etime;	/* Syscall entry time */
+	struct fault_opts *faults_vec[SUPPORTED_PERSONALITIES];
 
 #ifdef USE_LIBUNWIND
 	struct UPT_info* libunwind_ui;
@@ -288,6 +289,7 @@ struct tcb {
 #define QUAL_SIGNAL	0x010	/* report events with this signal */
 #define QUAL_READ	0x020	/* dump data read on this file descriptor */
 #define QUAL_WRITE	0x040	/* dump data written to this file descriptor */
+#define QUAL_FAULT	0x080	/* this system call fail on purpose */
 typedef uint8_t qualbits_t;
 
 #define DEFAULT_QUAL_FLAGS (QUAL_TRACE | QUAL_ABBREV | QUAL_VERBOSE)
@@ -381,6 +383,27 @@ enum iov_decode {
 	IOV_DECODE_ADDR,
 	IOV_DECODE_STR,
 	IOV_DECODE_NETLINK
+};
+
+/* Fault injection qualifiers concerning syscalls:
+ * FAULT_ENTER: already discarded, but error is not yet propagated
+ * FAULT_DONE: already discarded and we were using FAULT_AT (prevent overflow)
+ * FAULT_AT: discard syscall at the nth time
+ * FAULT_EVERY: discard syscall every nth time
+ * FAULT_FUZZY: discard syscall on a random basis every nth percent of the time
+ */
+#define FAULT_ENTER (1 << 1)
+#define FAULT_EVERY (1 << 2)
+#define FAULT_FUZZY (1 << 3)
+#define FAULT_AT (1 << 4)
+#define FAULT_DONE (1 << 5)
+#define FAULT_DISCARD_SCNO -1
+
+struct fault_opts {
+	int err;
+	int cnt;
+	int occ;
+	qualbits_t flag;
 };
 
 typedef enum {
