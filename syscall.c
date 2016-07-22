@@ -387,17 +387,51 @@ static const struct qual_options {
 	{ 0,		NULL,		NULL,		NULL		},
 };
 
-static void
-reallocate_qual(const unsigned int n)
+static inline void
+reallocate_vec(void **vec, size_t size, size_t elt, int n)
 {
 	unsigned p;
-	qualbits_t *qp;
+	char *ptr;
+
 	for (p = 0; p < SUPPORTED_PERSONALITIES; p++) {
-		qp = qual_vec[p] = xreallocarray(qual_vec[p], n,
-						 sizeof(qualbits_t));
-		memset(&qp[num_quals], 0, (n - num_quals) * sizeof(qualbits_t));
+		ptr = vec[p] = xreallocarray(vec[p], n, elt);
+		memset(ptr + elt * size, 0, (n - size) * elt);
 	}
+}
+
+static inline void
+reallocate_qual(const unsigned int n)
+{
+	reallocate_vec((void **)qual_vec, num_quals, sizeof(qualbits_t), n);
 	num_quals = n;
+}
+
+static int
+find_errno_by_name(const char *name)
+{
+	unsigned int i;
+
+	for (i = 1; i < nerrnos; i++) {
+		if (errnoent[i] && (strcmp(name, errnoent[i]) == 0))
+			return i;
+	}
+
+	return -1;
+}
+
+static int
+find_scno_by_name(const char *name, unsigned personality)
+{
+	unsigned int i;
+
+	for (i = 0; i < nsyscall_vec[personality]; i++) {
+		if (sysent_vec[personality][i].sys_name
+		    && strcmp(name, sysent_vec[personality][i].sys_name) == 0) {
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 static void
