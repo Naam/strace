@@ -59,6 +59,21 @@ string_to_uint(const char *str)
 }
 
 int
+string_to_int(const char *str)
+{
+	char *error;
+	long value;
+
+	if (!*str)
+		return -1;
+	errno = 0;
+	value = strtol(str, &error, 10);
+	if (errno || *error || (long)(int)value != value)
+		return -1;
+	return (int)value;
+}
+
+int
 tv_nz(const struct timeval *a)
 {
 	return a->tv_sec || a->tv_usec;
