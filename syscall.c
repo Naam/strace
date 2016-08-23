@@ -793,6 +793,7 @@ syscall_name(long scno)
 }
 
 static long get_regs_error;
+static long set_regs_error;
 
 void
 clear_regs(void)
@@ -1307,6 +1308,79 @@ get_regs(pid_t pid)
 # warning get_regs is not implemented for this architecture yet
 	get_regs_error = 0;
 #endif
+}
+
+#if defined ARCH_REGS_FOR_GETREGSET
+static long
+set_regset(pid_t pid)
+{
+# ifdef ARCH_IOVEC_FOR_GETREGSET
+	/* variable iovec */
+	ARCH_IOVEC_FOR_GETREGSET.iov_len = sizeof(ARCH_REGS_FOR_GETREGSET);
+	return ptrace(PTRACE_SETREGSET, pid, NT_PRSTATUS,
+		      &ARCH_IOVEC_FOR_GETREGSET);
+#else
+	/* constant iovec */
+	static struct iovec io = {
+		.iov_base = &ARCH_REGS_FOR_GETREGSET,
+		.iov_len = sizeof(ARCH_REGS_FOR_GETREGSET)
+	};
+	return ptrace(PTRACE_SETREGSET, pid, NT_PRSTATUS, &io);
+# endif
+}
+#endif /* ARCH_REGS_FOR_GETREGSET */
+
+
+long
+set_regs(pid_t pid)
+{
+#undef USE_GET_SYSCALL_RESULT_REGS
+#ifdef ARCH_REGS_FOR_GETREGSET
+# ifdef X86_64
+	/* Try PTRACE_SETREGSET first, fallback to PTRACE_SETREGS. */
+	static int setregset_support;
+
+	if (setregset_support >= 0) {
+		set_regs_error = set_regset(pid);
+		if (setregset_support > 0)
+			return set_regs_error;
+		if (set_regs_error >= 0) {
+			setregset_support = 1;
+			return set_regs_error;
+		}
+		if (errno == EPERM || errno == ESRCH)
+			return -1;
+		setregset_support = -1;
+	}
+	set_regs_error = ptrace(PTRACE_SETREGS, pid, NULL, &ARCH_REGS_FOR_GETREGSET);
+# else /* !X86_64 */
+	/* Assume that PTRACE_GETREGSET works. */
+	set_regs_error = set_regset(pid);
+# endif
+#elif defined ARCH_REGS_FOR_GETREGS
+# if defined SPARC || defined SPARC64
+	/* SPARC systems have the meaning of data and addr reversed */
+	set_regs_error = ptrace(PTRACE_SETREGS, pid, (char *)&ARCH_REGS_FOR_GETREGS, 0);
+# elif defined POWERPC
+	static bool old_kernel = 0;
+	if (old_kernel)
+		goto old;
+	set_regs_error = ptrace(PTRACE_SETREGS, pid, NULL, &ARCH_REGS_FOR_GETREGS);
+	if (set_regs_error && errno == EIO) {
+		old_kernel = 1;
+ old:
+		set_regs_error = setregs_old(pid);
+	}
+# else
+	/* Assume that PTRACE_SETREGS works. */
+	set_regs_error = ptrace(PTRACE_SETREGS, pid, NULL, &ARCH_REGS_FOR_GETREGS);
+# endif
+
+#else /* !ARCH_REGS_FOR_GETREGSET && !ARCH_REGS_FOR_GETREGS */
+# warning set_regs is not implemented for this architecture yet
+	set_regs_error = 0;
+#endif
+	return set_regs_error;
 }
 
 struct sysent_buf {

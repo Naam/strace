@@ -451,6 +451,7 @@ extern void call_summary(FILE *);
 
 extern void clear_regs(void);
 extern void get_regs(pid_t pid);
+extern long set_regs(pid_t pid);
 extern int get_scno(struct tcb *tcp);
 extern const char *syscall_name(long scno);
 
