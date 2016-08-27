@@ -400,8 +400,8 @@ enum iov_decode {
 #define FAULT_DISCARD_SCNO -1
 
 struct fault_opts {
-	int err;
-	int cnt;
+	long int err;
+	long int cnt;
 	int occ;
 	qualbits_t flag;
 };
