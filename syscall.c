@@ -503,7 +503,7 @@ static int
 qual_fault(const char *s, const unsigned int bitflag, const int not)
 {
 	int i, p;
-	struct fault_opts opts;
+	struct fault_opts opts = { 0 };
 	char *ms, *ss, *end, *saveptr;
 
 	ms = ss = xstrdup(s);
