@@ -1504,16 +1504,6 @@ set_regs(pid_t pid)
 # if defined SPARC || defined SPARC64
 	/* SPARC systems have the meaning of data and addr reversed */
 	set_regs_error = ptrace(PTRACE_SETREGS, pid, (char *)&ARCH_REGS_FOR_GETREGS, 0);
-# elif defined POWERPC
-	static bool old_kernel = 0;
-	if (old_kernel)
-		goto old;
-	set_regs_error = ptrace(PTRACE_SETREGS, pid, NULL, &ARCH_REGS_FOR_GETREGS);
-	if (set_regs_error && errno == EIO) {
-		old_kernel = 1;
- old:
-		set_regs_error = setregs_old(pid);
-	}
 # else
 	/* Assume that PTRACE_SETREGS works. */
 	set_regs_error = ptrace(PTRACE_SETREGS, pid, NULL, &ARCH_REGS_FOR_GETREGS);
