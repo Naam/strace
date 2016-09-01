@@ -505,6 +505,7 @@ extern int umoven_or_printaddr(struct tcb *, long, unsigned int, void *);
 	umoven_or_printaddr((pid), (addr), sizeof(*(objp)), (void *) (objp))
 extern int umovestr(struct tcb *, long, unsigned int, char *);
 extern int upeek(int pid, long, long *);
+extern int upoke(int pid, long, long *);
 
 extern bool
 print_array(struct tcb *tcp,
