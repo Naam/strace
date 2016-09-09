@@ -301,6 +301,8 @@ EXTRA_DIST =				\
 	linux/aarch64/ioctls_arch1.h	\
 	linux/aarch64/ioctls_inc0.h	\
 	linux/aarch64/ioctls_inc1.h	\
+	linux/aarch64/set_error.c	\
+	linux/aarch64/set_scno.c	\
 	linux/aarch64/signalent1.h	\
 	linux/aarch64/stat32.h		\
 	linux/aarch64/syscallent.h	\
@@ -316,6 +318,8 @@ EXTRA_DIST =				\
 	linux/alpha/get_syscall_result.c\
 	linux/alpha/ioctls_arch0.h	\
 	linux/alpha/ioctls_inc0.h	\
+	linux/alpha/set_error.c		\
+	linux/alpha/set_scno.c		\
 	linux/alpha/signalent.h		\
 	linux/alpha/syscallent.h	\
 	linux/alpha/userent.h		\
@@ -325,6 +329,8 @@ EXTRA_DIST =				\
 	linux/arc/get_syscall_args.c	\
 	linux/arc/ioctls_arch0.h	\
 	linux/arc/ioctls_inc0.h		\
+	linux/arc/set_error.c		\
+	linux/arc/set_scno.c		\
 	linux/arc/syscallent.h		\
 	linux/arch_regs.h		\
 	linux/arch_sigreturn.c		\
@@ -336,6 +342,8 @@ EXTRA_DIST =				\
 	linux/arm/get_syscall_args.c	\
 	linux/arm/ioctls_arch0.h	\
 	linux/arm/ioctls_inc0.h		\
+	linux/arm/set_error.c		\
+	linux/arm/set_scno.c		\
 	linux/arm/syscallent.h		\
 	linux/arm/userent.h		\
 	linux/avr32/arch_regs.c		\
@@ -344,6 +352,8 @@ EXTRA_DIST =				\
 	linux/avr32/get_syscall_args.c	\
 	linux/avr32/ioctls_arch0.h	\
 	linux/avr32/ioctls_inc0.h	\
+	linux/avr32/set_error.c		\
+	linux/avr32/set_scno.c		\
 	linux/avr32/syscallent.h	\
 	linux/avr32/userent.h		\
 	linux/bfin/arch_regs.c		\
@@ -353,6 +363,8 @@ EXTRA_DIST =				\
 	linux/bfin/get_syscall_result.c	\
 	linux/bfin/ioctls_arch0.h	\
 	linux/bfin/ioctls_inc0.h	\
+	linux/bfin/set_error.c		\
+	linux/bfin/set_scno.c		\
 	linux/bfin/syscallent.h		\
 	linux/bfin/userent.h		\
 	linux/crisv10/arch_regs.c	\
@@ -361,6 +373,8 @@ EXTRA_DIST =				\
 	linux/crisv10/get_scno.c	\
 	linux/crisv10/get_syscall_args.c	\
 	linux/crisv10/get_syscall_result.c	\
+	linux/crisv10/set_error.c	\
+	linux/crisv10/set_scno.c	\
 	linux/crisv10/userent.h		\
 	linux/crisv32/arch_regs.c	\
 	linux/crisv32/arch_sigreturn.c	\
@@ -368,6 +382,8 @@ EXTRA_DIST =				\
 	linux/crisv32/get_scno.c	\
 	linux/crisv32/get_syscall_args.c	\
 	linux/crisv32/get_syscall_result.c	\
+	linux/crisv32/set_error.c	\
+	linux/crisv32/set_scno.c	\
 	linux/crisv32/userent.h		\
 	linux/dummy.h			\
 	linux/errnoent.h		\
@@ -380,6 +396,8 @@ EXTRA_DIST =				\
 	linux/hppa/get_syscall_result.c	\
 	linux/hppa/ioctls_arch0.h	\
 	linux/hppa/ioctls_inc0.h	\
+	linux/hppa/set_error.c		\
+	linux/hppa/set_scno.c		\
 	linux/hppa/signalent.h		\
 	linux/hppa/syscallent.h		\
 	linux/i386/arch_regs.c		\
@@ -404,6 +422,8 @@ EXTRA_DIST =				\
 	linux/ia64/get_syscall_args.c	\
 	linux/ia64/ioctls_arch0.h	\
 	linux/ia64/ioctls_inc0.h	\
+	linux/ia64/set_error.c		\
+	linux/ia64/set_scno.c		\
 	linux/ia64/syscallent.h		\
 	linux/ia64/userent.h		\
 	linux/inet_diag.h		\
@@ -415,6 +435,8 @@ EXTRA_DIST =				\
 	linux/m68k/get_syscall_result.c	\
 	linux/m68k/ioctls_arch0.h	\
 	linux/m68k/ioctls_inc0.h	\
+	linux/m68k/set_error.c		\
+	linux/m68k/set_scno.c		\
 	linux/m68k/syscallent.h		\
 	linux/m68k/userent.h		\
 	linux/metag/arch_regs.c		\
@@ -423,6 +445,8 @@ EXTRA_DIST =				\
 	linux/metag/get_syscall_args.c	\
 	linux/metag/ioctls_arch0.h	\
 	linux/metag/ioctls_inc0.h	\
+	linux/metag/set_error.c		\
+	linux/metag/set_scno.c		\
 	linux/metag/syscallent.h	\
 	linux/microblaze/arch_regs.c	\
 	linux/microblaze/arch_sigreturn.c	\
@@ -432,6 +456,8 @@ EXTRA_DIST =				\
 	linux/microblaze/get_syscall_result.c	\
 	linux/microblaze/ioctls_arch0.h	\
 	linux/microblaze/ioctls_inc0.h	\
+	linux/microblaze/set_error.c	\
+	linux/microblaze/set_scno.c	\
 	linux/microblaze/syscallent.h	\
 	linux/microblaze/userent.h	\
 	linux/mips/arch_getrval2.c	\
@@ -445,6 +471,8 @@ EXTRA_DIST =				\
 	linux/mips/get_syscall_args.c	\
 	linux/mips/ioctls_arch0.h	\
 	linux/mips/ioctls_inc0.h	\
+	linux/mips/set_error.c		\
+	linux/mips/set_scno.c		\
 	linux/mips/signalent.h		\
 	linux/mips/syscallent-compat.h	\
 	linux/mips/syscallent-n32.h	\
@@ -460,6 +488,8 @@ EXTRA_DIST =				\
 	linux/nios2/get_syscall_args.c	\
 	linux/nios2/ioctls_arch0.h	\
 	linux/nios2/ioctls_inc0.h	\
+	linux/nios2/set_error.c		\
+	linux/nios2/set_scno.c		\
 	linux/nios2/syscallent.h	\
 	linux/or1k/arch_regs.c		\
 	linux/or1k/get_error.c		\
@@ -467,6 +497,8 @@ EXTRA_DIST =				\
 	linux/or1k/get_syscall_args.c	\
 	linux/or1k/ioctls_arch0.h	\
 	linux/or1k/ioctls_inc0.h	\
+	linux/or1k/set_error.c		\
+	linux/or1k/set_scno.c		\
 	linux/or1k/syscallent.h		\
 	linux/or1k/userent.h		\
 	linux/personality.h		\
@@ -480,6 +512,8 @@ EXTRA_DIST =				\
 	linux/powerpc/getregs_old.c	\
 	linux/powerpc/ioctls_arch0.h	\
 	linux/powerpc/ioctls_inc0.h	\
+	linux/powerpc/set_error.c	\
+	linux/powerpc/set_scno.c	\
 	linux/powerpc/syscallent.h	\
 	linux/powerpc/userent.h		\
 	linux/powerpc64/arch_regs.c	\
@@ -495,6 +529,8 @@ EXTRA_DIST =				\
 	linux/powerpc64/ioctls_arch1.h	\
 	linux/powerpc64/ioctls_inc0.h	\
 	linux/powerpc64/ioctls_inc1.h	\
+	linux/powerpc64/set_error.c	\
+	linux/powerpc64/set_scno.c	\
 	linux/powerpc64/signalent1.h	\
 	linux/powerpc64/stat32.h	\
 	linux/powerpc64/syscallent.h	\
@@ -509,6 +545,8 @@ EXTRA_DIST =				\
 	linux/s390/get_syscall_args.c	\
 	linux/s390/ioctls_arch0.h	\
 	linux/s390/ioctls_inc0.h	\
+	linux/s390/set_error.c		\
+	linux/s390/set_scno.c		\
 	linux/s390/syscallent.h		\
 	linux/s390/userent.h		\
 	linux/s390/userent0.h		\
@@ -521,6 +559,8 @@ EXTRA_DIST =				\
 	linux/s390x/get_syscall_args.c	\
 	linux/s390x/ioctls_arch0.h	\
 	linux/s390x/ioctls_inc0.h	\
+	linux/s390x/set_error.c		\
+	linux/s390x/set_scno.c		\
 	linux/s390x/syscallent.h	\
 	linux/s390x/userent.h		\
 	linux/sh/arch_getrval2.c	\
@@ -558,6 +598,8 @@ EXTRA_DIST =				\
 	linux/sparc/ioctls_arch0.h	\
 	linux/sparc/ioctls_inc0.h	\
 	linux/sparc/signalent.h		\
+	linux/sparc/set_error.c		\
+	linux/sparc/set_scno.c		\
 	linux/sparc/syscallent.h	\
 	linux/sparc/userent.h		\
 	linux/sparc64/arch_getrval2.c	\
@@ -573,6 +615,8 @@ EXTRA_DIST =				\
 	linux/sparc64/ioctls_arch1.h	\
 	linux/sparc64/ioctls_inc0.h	\
 	linux/sparc64/ioctls_inc1.h	\
+	linux/sparc64/set_error.c	\
+	linux/sparc64/set_scno.c	\
 	linux/sparc64/signalent.h	\
 	linux/sparc64/signalent1.h	\
 	linux/sparc64/stat32.h		\
@@ -592,6 +636,8 @@ EXTRA_DIST =				\
 	linux/tile/ioctls_arch1.h	\
 	linux/tile/ioctls_inc0.h	\
 	linux/tile/ioctls_inc1.h	\
+	linux/tile/set_error.c		\
+	linux/tile/set_scno.c		\
 	linux/tile/signalent1.h		\
 	linux/tile/stat32.h		\
 	linux/tile/syscallent.h		\
@@ -612,6 +658,8 @@ EXTRA_DIST =				\
 	linux/x32/ioctls_arch1.h	\
 	linux/x32/ioctls_inc0.h		\
 	linux/x32/ioctls_inc1.h		\
+	linux/x32/set_error.c		\
+	linux/x32/set_scno.c		\
 	linux/x32/signalent1.h		\
 	linux/x32/stat32.h		\
 	linux/x32/syscallent.h		\
@@ -649,6 +697,8 @@ EXTRA_DIST =				\
 	linux/xtensa/get_syscall_result.c	\
 	linux/xtensa/ioctls_arch0.h	\
 	linux/xtensa/ioctls_inc0.h	\
+	linux/xtensa/set_error.c	\
+	linux/xtensa/set_scno.c		\
 	linux/xtensa/syscallent.h	\
 	linux/xtensa/userent.h		\
 	maint/ioctls_gen.sh		\
